@@ -1,21 +1,27 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more contributor license agreements. See the NOTICE file distributed with this work for additional information regarding copyright
- * ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the
- * License at
- * 
- * http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
- * implied. See the License for the specific language governing permissions and limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.apache.pdfbox.filter;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.EOFException;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 import java.util.zip.ZipException;
@@ -29,38 +35,47 @@ import org.apache.pdfbox.cos.COSName;
 
 /**
  * This is the used for the FlateDecode filter.
- * 
+ *
  * @author <a href="mailto:ben@benlitchfield.com">Ben Litchfield</a>
  * @author Marcel Kammer
  * @version $Revision: 1.12 $
  */
-public class FlateFilter implements Filter {
+public class FlateFilter implements Filter
+{
 
     /**
      * Log instance.
      */
-    private static final Log LOG         = LogFactory.getLog(FlateFilter.class);
+    private static final Log LOG = LogFactory.getLog(FlateFilter.class);
 
     private static final int BUFFER_SIZE = 16348;
 
     /**
      * {@inheritDoc}
      */
-    public void decode(final InputStream compressedData, final OutputStream result, final COSDictionary options, final int filterIndex) throws IOException {
-        final COSBase baseObj = options.getDictionaryObject(COSName.DECODE_PARMS, COSName.DP);
+    public void decode(InputStream compressedData, OutputStream result, COSDictionary options, int filterIndex )
+    throws IOException
+    {
+        COSBase baseObj = options.getDictionaryObject(COSName.DECODE_PARMS, COSName.DP);
         COSDictionary dict = null;
-        if (baseObj instanceof COSDictionary) {
-            dict = (COSDictionary) baseObj;
+        if( baseObj instanceof COSDictionary )
+        {
+            dict = (COSDictionary)baseObj;
         }
-        else if (baseObj instanceof COSArray) {
-            final COSArray paramArray = (COSArray) baseObj;
-            if (filterIndex < paramArray.size()) {
-                dict = (COSDictionary) paramArray.getObject(filterIndex);
+        else if( baseObj instanceof COSArray )
+        {
+            COSArray paramArray = (COSArray)baseObj;
+            if( filterIndex < paramArray.size() )
+            {
+                dict = (COSDictionary)paramArray.getObject( filterIndex );
             }
         }
-        else if (baseObj != null) {
-            throw new IOException("Error: Expected COSArray or COSDictionary and not " + baseObj.getClass().getName());
+        else if( baseObj != null )
+        {
+            throw new IOException( "Error: Expected COSArray or COSDictionary and not "
+                    + baseObj.getClass().getName() );
         }
+
 
         int predictor = -1;
         int colors = -1;
@@ -69,58 +84,76 @@ public class FlateFilter implements Filter {
         InflaterInputStream decompressor = null;
         ByteArrayInputStream bais = null;
         ByteArrayOutputStream baos = null;
-        if (dict != null) {
+        if (dict!=null)
+        {
             predictor = dict.getInt(COSName.PREDICTOR);
-            if (predictor > 1) {
+            if(predictor > 1)
+            {
                 colors = dict.getInt(COSName.COLORS);
                 bitsPerPixel = dict.getInt(COSName.BITS_PER_COMPONENT);
                 columns = dict.getInt(COSName.COLUMNS);
             }
         }
 
-        try {
+        try
+        {
             // Decompress data to temporary ByteArrayOutputStream
             decompressor = new InflaterInputStream(compressedData);
             int amountRead;
-            final int mayRead = compressedData.available();
+            int mayRead = compressedData.available();
 
-            if (mayRead > 0) {
-                final byte[] buffer = new byte[Math.min(mayRead, BUFFER_SIZE)];
+            if (mayRead > 0)
+            {
+                byte[] buffer = new byte[Math.min(mayRead,BUFFER_SIZE)];
 
                 // Decode data using given predictor
-                if (predictor == -1 || predictor == 1) {
-                    try {
+                if (predictor==-1 || predictor == 1 )
+                {
+                    try
+                    {
                         // decoding not needed
-                        while ((amountRead = decompressor.read(buffer, 0, Math.min(mayRead, BUFFER_SIZE))) != -1) {
+                        while ((amountRead = decompressor.read(buffer, 0, Math.min(mayRead,BUFFER_SIZE))) != -1)
+                        {
                             result.write(buffer, 0, amountRead);
                         }
-                    } catch (final OutOfMemoryError exception) {
+                    }
+                    catch (OutOfMemoryError exception)
+                    {
                         // if the stream is corrupt an OutOfMemoryError may occur
-                        LOG.error("Stop reading corrupt stream", exception);
-                    } catch (final ZipException exception) {
+                        LOG.error("Stop reading corrupt stream");
+                    }
+                    catch (ZipException exception)
+                    {
                         // if the stream is corrupt an OutOfMemoryError may occur
-                        LOG.error("Stop reading corrupt stream", exception);
-                    } catch (final EOFException exception) {
+                        LOG.error("Stop reading corrupt stream");
+                    }
+                    catch (EOFException exception)
+                    {
                         // if the stream is corrupt an OutOfMemoryError may occur
-                        LOG.error("Stop reading corrupt stream", exception);
+                        LOG.error("Stop reading corrupt stream");
                     }
                 }
-                else {
+                else
+                {
                     /*
                      * Reverting back to default values
                      */
-                    if (colors == -1) {
+                    if( colors == -1 )
+                    {
                         colors = 1;
                     }
-                    if (bitsPerPixel == -1) {
+                    if( bitsPerPixel == -1 )
+                    {
                         bitsPerPixel = 8;
                     }
-                    if (columns == -1) {
+                    if( columns == -1 )
+                    {
                         columns = 1;
                     }
 
                     baos = new ByteArrayOutputStream();
-                    while ((amountRead = decompressor.read(buffer, 0, Math.min(mayRead, BUFFER_SIZE))) != -1) {
+                    while ((amountRead = decompressor.read(buffer, 0, Math.min(mayRead,BUFFER_SIZE))) != -1)
+                    {
                         baos.write(buffer, 0, amountRead);
                     }
                     baos.flush();
@@ -130,7 +163,7 @@ public class FlateFilter implements Filter {
                     baos.close();
                     baos = null;
 
-                    final byte[] decodedData = decodePredictor(predictor, colors, bitsPerPixel, columns, bais);
+                    byte[] decodedData = decodePredictor(predictor, colors, bitsPerPixel, columns, bais);
                     bais.close();
                     bais = null;
 
@@ -139,51 +172,65 @@ public class FlateFilter implements Filter {
             }
 
             result.flush();
-        } finally {
-            if (decompressor != null) {
+        }
+        finally
+        {
+            if (decompressor != null)
+            {
                 decompressor.close();
             }
-            if (bais != null) {
+            if (bais != null)
+            {
                 bais.close();
             }
-            if (baos != null) {
+            if (baos != null)
+            {
                 baos.close();
             }
         }
     }
 
-    private byte[] decodePredictor(final int predictor, final int colors, final int bitsPerComponent, final int columns, final InputStream data) throws IOException {
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        final byte[] buffer = new byte[2048];
-        if (predictor == 1) {
+    private byte[] decodePredictor(int predictor, int colors, int bitsPerComponent, int columns, InputStream data)
+        throws IOException
+    {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte[] buffer = new byte[2048];
+        if (predictor == 1 )
+        {
             // No prediction
             int i = 0;
-            while ((i = data.read(buffer)) != -1) {
+            while ((i = data.read(buffer)) != -1)
+            {
                 baos.write(buffer, 0, i);
             }
         }
-        else {
+        else
+        {
             // calculate sizes
-            final int bitsPerPixel = colors * bitsPerComponent;
-            final int bytesPerPixel = (bitsPerPixel + 7) / 8;
-            final int rowlength = (columns * bitsPerPixel + 7) / 8;
-            final byte[] actline = new byte[rowlength];
+            int bitsPerPixel = colors * bitsPerComponent;
+            int bytesPerPixel = (bitsPerPixel + 7 ) / 8;
+            int rowlength = (columns * bitsPerPixel + 7) / 8;
+            byte[] actline = new byte[rowlength];
             // Initialize lastline with Zeros according to PNG-specification
             byte[] lastline = new byte[rowlength];
 
             boolean done = false;
             int linepredictor = predictor;
 
-            while (!done && data.available() > 0) {
+            while (!done && data.available() > 0)
+            {
                 // test for PNG predictor; each value >= 10 (not only 15) indicates usage of PNG predictor
-                if (predictor >= 10) {
+                if (predictor >= 10)
+                {
                     // PNG predictor; each row starts with predictor type (0, 1, 2, 3, 4)
                     linepredictor = data.read();// read per line predictor
-                    if (linepredictor == -1) {
+                    if (linepredictor == -1)
+                    {
                         done = true;// reached EOF
                         break;
                     }
-                    else {
+                    else
+                    {
                         linepredictor += 10; // add 10 to tread value 0 as 10, 1 as 11, ...
                     }
                 }
@@ -191,23 +238,29 @@ public class FlateFilter implements Filter {
                 // read line
                 int i = 0;
                 int offset = 0;
-                while (offset < rowlength && (i = data.read(actline, offset, rowlength - offset)) != -1) {
+                while (offset < rowlength && ((i = data.read(actline, offset, rowlength - offset)) != -1))
+                {
                     offset += i;
                 }
 
                 // Do prediction as specified in PNG-Specification 1.2
-                switch (linepredictor) {
+                switch (linepredictor)
+                {
                     case 2:// PRED TIFF SUB
                         /**
-                         * @TODO decode tiff with bitsPerComponent != 8; e.g. for 4 bpc each nibble must be subtracted separately
+                         * @TODO decode tiff with bitsPerComponent != 8;
+                         * e.g. for 4 bpc each nibble must be subtracted separately
                          */
-                        if (bitsPerComponent != 8) {
-                            throw new IOException("TIFF-Predictor with " + bitsPerComponent + " bits per component not supported");
+                        if ( bitsPerComponent != 8 )
+                        {
+                            throw new IOException("TIFF-Predictor with " + bitsPerComponent
+                                    + " bits per component not supported");
                         }
                         // for 8 bits per component it is the same algorithm as PRED SUB of PNG format
-                        for (int p = 0; p < rowlength; p++) {
-                            final int sub = actline[p] & 0xff;
-                            final int left = p - bytesPerPixel >= 0 ? actline[p - bytesPerPixel] & 0xff : 0;
+                        for (int p = 0; p < rowlength; p++)
+                        {
+                            int sub = actline[p] & 0xff;
+                            int left = p - bytesPerPixel >= 0 ? actline[p - bytesPerPixel] & 0xff : 0;
                             actline[p] = (byte) (sub + left);
                         }
                         break;
@@ -215,46 +268,53 @@ public class FlateFilter implements Filter {
                         // do nothing
                         break;
                     case 11:// PRED SUB
-                        for (int p = 0; p < rowlength; p++) {
-                            final int sub = actline[p];
-                            final int left = p - bytesPerPixel >= 0 ? actline[p - bytesPerPixel] : 0;
+                        for (int p = 0; p < rowlength; p++)
+                        {
+                            int sub = actline[p];
+                            int left = p - bytesPerPixel >= 0 ? actline[p - bytesPerPixel]: 0;
                             actline[p] = (byte) (sub + left);
                         }
                         break;
                     case 12:// PRED UP
-                        for (int p = 0; p < rowlength; p++) {
-                            final int up = actline[p] & 0xff;
-                            final int prior = lastline[p] & 0xff;
-                            actline[p] = (byte) (up + prior & 0xff);
+                        for (int p = 0; p < rowlength; p++)
+                        {
+                            int up = actline[p] & 0xff;
+                            int prior = lastline[p] & 0xff;
+                            actline[p] = (byte) ((up + prior) & 0xff);
                         }
                         break;
                     case 13:// PRED AVG
-                        for (int p = 0; p < rowlength; p++) {
-                            final int avg = actline[p] & 0xff;
-                            final int left = p - bytesPerPixel >= 0 ? actline[p - bytesPerPixel] & 0xff : 0;
-                            final int up = lastline[p] & 0xff;
-                            actline[p] = (byte) (avg + (int) Math.floor((left + up) / 2) & 0xff);
+                        for (int p = 0; p < rowlength; p++)
+                        {
+                            int avg = actline[p] & 0xff;
+                            int left = p - bytesPerPixel >= 0 ? actline[p - bytesPerPixel] & 0xff: 0;
+                            int up = lastline[p] & 0xff;
+                            actline[p] = (byte) ((avg +  (int)Math.floor( (left + up)/2 ) ) & 0xff);
                         }
                         break;
                     case 14:// PRED PAETH
-                        for (int p = 0; p < rowlength; p++) {
-                            final int paeth = actline[p] & 0xff;
-                            final int a = p - bytesPerPixel >= 0 ? actline[p - bytesPerPixel] & 0xff : 0;// left
-                            final int b = lastline[p] & 0xff;// upper
-                            final int c = p - bytesPerPixel >= 0 ? lastline[p - bytesPerPixel] & 0xff : 0;// upperleft
-                            final int value = a + b - c;
-                            final int absa = Math.abs(value - a);
-                            final int absb = Math.abs(value - b);
-                            final int absc = Math.abs(value - c);
+                        for (int p = 0; p < rowlength; p++)
+                        {
+                            int paeth = actline[p] & 0xff;
+                            int a = p - bytesPerPixel >= 0 ? actline[p - bytesPerPixel] & 0xff : 0;// left
+                            int b = lastline[p] & 0xff;// upper
+                            int c = p - bytesPerPixel >= 0 ? lastline[p - bytesPerPixel] & 0xff : 0;// upperleft
+                            int value = a + b - c;
+                            int absa = Math.abs(value - a);
+                            int absb = Math.abs(value - b);
+                            int absc = Math.abs(value - c);
 
-                            if (absa <= absb && absa <= absc) {
-                                actline[p] = (byte) (paeth + a & 0xff);
+                            if (absa <= absb && absa <= absc)
+                            {
+                                actline[p] = (byte) ((paeth + a) & 0xff);
                             }
-                            else if (absb <= absc) {
-                                actline[p] = (byte) (paeth + b & 0xff);
+                            else if (absb <= absc)
+                            {
+                                actline[p] = (byte) ((paeth + b) & 0xff);
                             }
-                            else {
-                                actline[p] = (byte) (paeth + c & 0xff);
+                            else
+                            {
+                                actline[p] = (byte) ((paeth + c) & 0xff);
                             }
                         }
                         break;
@@ -271,13 +331,17 @@ public class FlateFilter implements Filter {
     /**
      * {@inheritDoc}
      */
-    public void encode(final InputStream rawData, final OutputStream result, final COSDictionary options, final int filterIndex) throws IOException {
-        final DeflaterOutputStream out = new DeflaterOutputStream(result);
+    public void encode(InputStream rawData, OutputStream result, COSDictionary options, int filterIndex )
+    throws IOException
+    {
+        DeflaterOutputStream out = new DeflaterOutputStream(result);
         int amountRead = 0;
-        final int mayRead = rawData.available();
-        if (mayRead > 0) {
-            final byte[] buffer = new byte[Math.min(mayRead, BUFFER_SIZE)];
-            while ((amountRead = rawData.read(buffer, 0, Math.min(mayRead, BUFFER_SIZE))) != -1) {
+        int mayRead = rawData.available();
+        if (mayRead > 0)
+        {
+            byte[] buffer = new byte[Math.min(mayRead,BUFFER_SIZE)];
+            while ((amountRead = rawData.read(buffer, 0, Math.min(mayRead,BUFFER_SIZE))) != -1)
+            {
                 out.write(buffer, 0, amountRead);
             }
         }

@@ -55,6 +55,17 @@ public final class COSName extends COSBase implements Comparable<COSName>
      * A common COSName value.
      */
     public static final COSName AA = new COSName( "AA" );
+
+    /**
+     * A common COSName value.
+     */
+    public static final COSName AESV2 = new COSName("AESV2");
+
+    /**
+     * A common COSName value.
+     */
+    public static final COSName AESV3 = new COSName("AESV3");
+
     /**
     * A common COSName value.
     */
@@ -415,6 +426,7 @@ public final class COSName extends COSBase implements Comparable<COSName>
      * A common COSName value.
      */
     public static final COSName DOMAIN = new COSName( "Domain" );
+
     /**
      * A common COSName value.
      */
@@ -1244,6 +1256,12 @@ public final class COSName extends COSBase implements Comparable<COSName>
     * A common COSName value.
     */
     public static final COSName V = new COSName( "V" );
+
+    /**
+    * A common COSName value.
+    */
+    public static final COSName V2 = new COSName( "V2" );
+
     /**
      * A common COSName value.
      */

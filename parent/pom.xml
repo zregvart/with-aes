@@ -91,7 +91,7 @@
         <configuration>
           <useReleaseProfile>false</useReleaseProfile>
           <goals>deploy</goals>
-          <arguments>-Papache-release,pedantic</arguments>
+          <arguments>-Papache-release</arguments>
           <autoVersionSubmodules>true</autoVersionSubmodules>
         </configuration>
       </plugin>

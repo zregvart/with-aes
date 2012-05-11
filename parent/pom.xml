@@ -221,4 +221,21 @@
         </roles>
     </developer>
   </developers>
+
+  <distributionManagement>
+
+    <repository>
+      <id>croz-releases</id>
+      <name>CROZ Releases Repository</name>
+      <url>http://repository.lan.croz.net/content/repositories/releases/</url>
+    </repository>
+
+    <snapshotRepository>
+      <id>croz-snapshots</id>
+      <name>CROZ Snapshots Repository</name>
+      <url>http://repository.lan.croz.net/content/repositories/snapshots/</url>
+    </snapshotRepository>
+
+  </distributionManagement>
+
 </project>
